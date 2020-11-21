@@ -99,5 +99,10 @@ public class DiamondSquareTerrain : MonoBehaviour {
 
         int mid = (int)(row+halfSize)*(mDivisions+1)+(int)(col+halfSize);
         mVerts[mid].y = (mVerts[topLeft].y+mVerts[topLeft+size].y+mVerts[botLeft].y+mVerts[botLeft+size].y)*0.25f + Random.Range(-offset, offset);
+
+        mVerts[topLeft+halfSize].y = (mVerts[topLeft].y + mVerts[topLeft + size].y + mVerts[mid].y)/3 + Random.Range(-offset, offset);
+        mVerts[mid - halfSize].y = (mVerts[topLeft].y + mVerts[botLeft].y + mVerts[mid].y)/3 + Random.Range(-offset, offset);
+        mVerts[mid + halfSize].y = (mVerts[topLeft + size].y + mVerts[topLeft + size].y + mVerts[mid].y)/3 + Random.Range(-offset, offset);
+        mVerts[botLeft + halfSize].y = (mVerts[botLeft].y + mVerts[botLeft + size].y + mVerts[mid].y)/3 + Random.Range(-offset, offset);
     }
 }
