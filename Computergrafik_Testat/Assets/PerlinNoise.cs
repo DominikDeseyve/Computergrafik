@@ -9,9 +9,6 @@ public class PerlinNoise : MonoBehaviour
     public int width;
     public float scale;
 
-    // Start is called before the first frame update
-
-
     private void Start()
     {
         height = 256;
@@ -24,7 +21,7 @@ public class PerlinNoise : MonoBehaviour
         renderer.material.mainTexture = GenerateTexture(width, height);
     }
 
-    public Texture2D getMoiserMap(int pX, int pY)
+    public Texture2D getMoistureMap(int pX, int pY)
     {
         return GenerateTexture(pX, pY);
     }
@@ -52,7 +49,4 @@ public class PerlinNoise : MonoBehaviour
         float sample = Mathf.PerlinNoise(xCoord, yCoord);
         return new Color(sample, sample, sample);
     }
-
-    // Update is called once per frame
-
 }
