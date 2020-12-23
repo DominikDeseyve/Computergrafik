@@ -6,8 +6,15 @@ Shader "CG_Lecture/DisplacementMapShader"
 	// Property Definition --> Visible in IDE
 	Properties
 	{
-                _HeightMap ("Height Map", 2D) = "bump" {}
-                _Scale ("Terrain Scale", Range(0, 1000)) = 1000
+        
+        _HeightMap ("Height Map", 2D) = "bump" {}
+		_MoistureMap ("Moisture Map", 2D) = "normal" {}
+		_ColorMap ("Color Map", 2D) = "normal" {}
+		_WaterMap ("Water Map", 2D) = "normal" {}
+		
+        _Scale ("Terrain Scale", Range(0, 1)) = 0.5			//Höhe der Berge
+		_LiquidScale ("Liquid Scale", Range(0, 1)) = 0	//gibt Höhe des Wasserspiegels an
+
 	}
 
 	// A Shader can contain one or more SubShaders, which are primarily used to implement shaders for different GPU capabilities
@@ -38,6 +45,15 @@ Shader "CG_Lecture/DisplacementMapShader"
 			float4 _HeightMap_ST;
 			float _Scale;
 
+			sampler2D _ColorMap;
+
+			sampler2D _MoistureMap;
+
+			sampler2D _MainTex;
+            float4 _MainTex_ST;
+            // Declare our new parameter here so it's visible to the CG shader
+            float4 _ScrollSpeeds;
+
 			// struct to pass Data from Vertex Sahder to Fragment Shader
 			struct v2f
 			{
@@ -59,16 +75,23 @@ Shader "CG_Lecture/DisplacementMapShader"
 				float4 vertexPos = v.vertex;
 
 				// Access texture and extract color value
-				fixed4 texVal = tex2Dlod(_HeightMap, float4(v.texcoord.xy, 0, 0));
+				fixed4 height = tex2Dlod(_HeightMap, float4(v.texcoord.xy, 0, 0));
+				fixed4 moisture = tex2Dlod(_MoistureMap, float4(v.texcoord.xy, 0, 0));
 
 				// displace z value of vertex by texture value multiplied with Scale
-				vertexPos.xyz +=  _Scale*v.normal*texVal.x;
+				vertexPos.xyz +=  _Scale*v.normal*height.x;
 
 				// Convert Vertex Data from Object to Clip Space
 				o.vertex = UnityObjectToClipPos(vertexPos);
 
 				// set texture value as color.
-				o.col = texVal;
+				//o.col = texVal;
+				float distanz = sqrt(float(vertexPos.x)*float(vertexPos.x)+float(vertexPos.y)*float(vertexPos.y)+float(vertexPos.z)*float(vertexPos.z));
+				float moistureLength = sqrt(float(moisture.x)*float(moisture.x)+float(moisture.y)*float(moisture.y)+float(moisture.z)*float(moisture.z));
+				o.col = tex2Dlod(_ColorMap, float4(moistureLength, distanz, 0.0, 0.0));   //x(moisture), y(height), 0, 0
+				//if VertexHöhe < _LiquidScale -> färbe blau
+
+				
 
 				return o;
 			}

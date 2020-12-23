@@ -13,12 +13,12 @@ public class MapController : MonoBehaviour
 
 
         // PerlinNoise 
-        PerlinNoise perlinNoise = (PerlinNoise)ScriptableObject.CreateInstance("PerlinNoise");
-        GetComponent<Renderer>().material.SetTexture("PERLINNOISE", perlinNoise.texture);
+        //PerlinNoise perlinNoise = (PerlinNoise)ScriptableObject.CreateInstance("PerlinNoise");
+        //GetComponent<Renderer>().material.SetTexture("_PerlinNoise", perlinNoise.texture);
 
         // ColorMap
         ColorMap colorMap = (ColorMap)ScriptableObject.CreateInstance("ColorMap");
-        GetComponent<Renderer>().material.SetTexture("COLORMAP", colorMap.texture);
+        GetComponent<Renderer>().material.SetTexture("_ColorMap", colorMap.texture);
 
     }
 
