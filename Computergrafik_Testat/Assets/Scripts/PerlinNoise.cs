@@ -2,23 +2,34 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PerlinNoise : MonoBehaviour
+public class PerlinNoise : ScriptableObject
 {
-
     public int height;
     public int width;
-    public float scale;
+    private float scale = 10f;
+
+    public Texture2D texture;
+
+    public void Init(int height, int width)
+    {
+        this.height = height;
+        this.width = width;
+
+        this.texture = GenerateTexture(height, width);
+    }
+
+    public static PerlinNoise CreateInstance(int height, int width)
+    {
+        var pn = ScriptableObject.CreateInstance<PerlinNoise>();
+        pn.Init(height, width);
+        return pn;
+    }
 
     private void Start()
     {
         height = 256;
         width = 256;
-        scale = 20f;
-    }
-    void Update()
-    {
-        Renderer renderer = GetComponent<Renderer>();
-        renderer.material.mainTexture = GenerateTexture(width, height);
+        scale = 10f;
     }
 
     public Texture2D getMoistureMap(int pX, int pY)
@@ -44,8 +55,8 @@ public class PerlinNoise : MonoBehaviour
 
     private Color CalculateColor(int x, int y)
     {
-        float xCoord = (float)x * scale;
-        float yCoord = (float)y * scale;
+        float xCoord = (float)x / width * scale;
+        float yCoord = (float)y / height * scale;
         float sample = Mathf.PerlinNoise(xCoord, yCoord);
         return new Color(sample, sample, sample);
     }
