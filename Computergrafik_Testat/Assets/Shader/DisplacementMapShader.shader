@@ -49,6 +49,8 @@ Shader "CG_Lecture/DisplacementMapShader"
 
 			sampler2D _MoistureMap;
 
+			float _LiquidScale;
+
 			sampler2D _MainTex;
             float4 _MainTex_ST;
             // Declare our new parameter here so it's visible to the CG shader
@@ -60,6 +62,7 @@ Shader "CG_Lecture/DisplacementMapShader"
 				// SV_POSITION: Shader semantic for position in Clip Space: https://docs.unity3d.com/Manual/SL-ShaderSemantics.html?_ga=2.64760810.432960686.1524081652-394573263.1524081652
 				float4 vertex : SV_POSITION;
 				float4 col : COLOR;
+				half3 worldViewDir : TEXCOORD2;
 			};
 
 			float _MaxDepth;
@@ -82,15 +85,23 @@ Shader "CG_Lecture/DisplacementMapShader"
 				vertexPos.xyz +=  _Scale*v.normal*height.x;
 
 				// Convert Vertex Data from Object to Clip Space
-				o.vertex = UnityObjectToClipPos(vertexPos);
+				//o.vertex = UnityObjectToClipPos(vertexPos);
 
 				// set texture value as color.
 				//o.col = texVal;
 				float distanz = sqrt(float(vertexPos.x)*float(vertexPos.x)+float(vertexPos.y)*float(vertexPos.y)+float(vertexPos.z)*float(vertexPos.z));
 				float moistureLength = sqrt(float(moisture.x)*float(moisture.x)+float(moisture.y)*float(moisture.y)+float(moisture.z)*float(moisture.z));
+				if (distanz <= _LiquidScale) {
+					distanz = 0.05;
+					moistureLength = 0.05;
+			
+				}
+				//o.worldViewDir = normalize(WorldSpaceViewDir(v.vertex));
+				o.vertex = UnityObjectToClipPos(vertexPos);
 				o.col = tex2Dlod(_ColorMap, float4(moistureLength, distanz, 0.0, 0.0));   //x(moisture), y(height), 0, 0
 				//if VertexHöhe < _LiquidScale -> färbe blau
 
+				
 				
 
 				return o;
