@@ -5,7 +5,8 @@ using UnityEngine;
 public class DiamondSquareTerrain : MonoBehaviour {
 
     public int mDivisions;
-    public float mSize;
+    public float mSizeX;
+    public float mSizeY;
     public float mHeight;
 
     Vector3[] mVerts;
@@ -23,20 +24,20 @@ public class DiamondSquareTerrain : MonoBehaviour {
         Vector2[] uvs = new Vector2[mVertCount];
         int[] tris = new int[mDivisions*mDivisions*6];
 
-        float halfSize = mSize*0.5f;
-        float divisionSize = mSize/mDivisions;
+        float halfSize = (mSizeX >= mSizeY) ? mSizeX*0.5f : mSizeY*0.5f;
+        float divisionSize = (mSizeX >= mSizeY) ? mSizeX/mDivisions : mSizeY/mDivisions;
 
-        Mesh mesh = new Mesh();
-        GetComponent<MeshFilter>().mesh = mesh;
+        //Mesh mesh = new Mesh();
+        //GetComponent<MeshFilter>().mesh = mesh;
 
-        int triOffset = 0;
+        //int triOffset = 0;
 
         for(int i= 0; i <= mDivisions; i++) {
 
             for(int j = 0; j <= mDivisions; j++) {
 
                 mVerts[i*(mDivisions+1)+j] = new Vector3(-halfSize+j*divisionSize, 0.0f, halfSize-i*divisionSize);
-                uvs[i*(mDivisions+1)+j] = new Vector2((float)i/mDivisions, (float)j/mDivisions);
+                /*uvs[i*(mDivisions+1)+j] = new Vector2((float)i/mDivisions, (float)j/mDivisions);
 
                 if(i<mDivisions && j < mDivisions) {
 
@@ -52,7 +53,7 @@ public class DiamondSquareTerrain : MonoBehaviour {
                     tris[triOffset+5] = botLeft;
 
                     triOffset += 6;
-                }
+                }*/
             }
         }
 
@@ -83,13 +84,49 @@ public class DiamondSquareTerrain : MonoBehaviour {
             mHeight *= 0.5f;
         }
 
-        mesh.vertices = mVerts;
+        /*mesh.vertices = mVerts;
         mesh.uv = uvs;
         mesh.triangles = tris;
 
         mesh.RecalculateBounds();
-        mesh.RecalculateNormals();
+        mesh.RecalculateNormals();*/
+
+
+    float[] minMax = minMaxHeight();
+
+        var texture = new Texture2D((int)mSizeX, (int)mSizeY);     //Variable am Anfang für Größe der Textur
+
+        float total = minMax[1] - minMax[0];
+
+
+        for (int i = 0; i < mSizeX; i++)
+        {
+            for (int j = 0; j < mSizeY; j++)
+            {
+                float h = (mVerts[i * (mDivisions + 1) + j].y - minMax[0]) / total;
+                texture.SetPixel(i, j, new Color(h, h, h, 1.0f));
+            }
+        }
+
+        GetComponent<Renderer>().material.SetTexture("_HeightMap", texture);
+        texture.Apply();
+
     }
+
+
+    float[] minMaxHeight()
+    {
+        float min = mVerts[0].y;
+        float max = mVerts[0].y;
+        for (int i = 0; i < mVerts.Length; i++)
+        {
+            min = System.Math.Min(mVerts[i].y, min);
+            max = System.Math.Max(mVerts[i].y, max);
+        }
+        return new float[2] { min, max };
+    }
+
+    
 
     void DiamondSquare(int row, int col, int size, float offset) {
 
