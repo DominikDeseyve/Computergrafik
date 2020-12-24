@@ -11,8 +11,18 @@ Shader "CG_Lecture/DisplacementMapShader"
 		_MoistureMap ("Moisture Map", 2D) = "normal" {}
 		_ColorMap ("Color Map", 2D) = "normal" {}
 		_WaterMap ("Water Map", 2D) = "normal" {}
+
+		//LambertShader
+		// Definition der Hauptfarbe.
+		_Color ("Base Color", Color) = (1,1,1,1)	
+		// Reflektanz des Ambienten Licht
+		_Ka("Ambient Reflectance", Range(0, 1)) = 0.5
+		// Reflektanz des Diffusen Licht
+		_Kd("Diffuse Reflectance", Range(0, 1)) = 0.5
 		
-        _Scale ("Terrain Scale", Range(0, 1)) = 0.5			//Höhe der Berge
+        _Scale ("Terrain Scale", float) = 0.5			//Höhe der Berge
+		_BasisHeight("Basis Höhe", float) = 0.5
+		_Modus ("GameObject", Range(0, 1)) = 0
 		_LiquidScale ("Liquid Scale", Range(0, 1)) = 0	//gibt Höhe des Wasserspiegels an
 
 	}
@@ -50,9 +60,9 @@ Shader "CG_Lecture/DisplacementMapShader"
 			sampler2D _MoistureMap;
 
 			float _LiquidScale;
+			float _Modus;
+			float _BasisHeight;
 
-			sampler2D _MainTex;
-            float4 _MainTex_ST;
             // Declare our new parameter here so it's visible to the CG shader
             float4 _ScrollSpeeds;
 
@@ -62,7 +72,6 @@ Shader "CG_Lecture/DisplacementMapShader"
 				// SV_POSITION: Shader semantic for position in Clip Space: https://docs.unity3d.com/Manual/SL-ShaderSemantics.html?_ga=2.64760810.432960686.1524081652-394573263.1524081652
 				float4 vertex : SV_POSITION;
 				float4 col : COLOR;
-				half3 worldViewDir : TEXCOORD2;
 			};
 
 			float _MaxDepth;
@@ -78,32 +87,28 @@ Shader "CG_Lecture/DisplacementMapShader"
 				float4 vertexPos = v.vertex;
 
 				// Access texture and extract color value
-				fixed4 height = tex2Dlod(_HeightMap, float4(v.texcoord.xy, 0, 0));
+				float height = tex2Dlod(_HeightMap, float4(v.texcoord.xy, 0, 0)).x;
 				fixed4 moisture = tex2Dlod(_MoistureMap, float4(v.texcoord.xy, 0, 0));
 
-				// displace z value of vertex by texture value multiplied with Scale
-				vertexPos.xyz +=  _Scale*v.normal*height.x;
-
-				// Convert Vertex Data from Object to Clip Space
-				//o.vertex = UnityObjectToClipPos(vertexPos);
-
-				// set texture value as color.
-				//o.col = texVal;
-				float distanz = sqrt(float(vertexPos.x)*float(vertexPos.x)+float(vertexPos.y)*float(vertexPos.y)+float(vertexPos.z)*float(vertexPos.z));
 				float moistureLength = sqrt(float(moisture.x)*float(moisture.x)+float(moisture.y)*float(moisture.y)+float(moisture.z)*float(moisture.z));
-				if (distanz <= _LiquidScale) {
-					distanz = 0.05;
-					moistureLength = 0.05;
-			
+				if (height <= _LiquidScale) 
+				{
+					height = _LiquidScale;
+					o.col = tex2Dlod(_ColorMap, float4(0.05, 0.05, 0.0, 0.0));   //x(moisture), y(height), 0, 0
+				} else 
+				{
+					o.col = tex2Dlod(_ColorMap, float4(moistureLength, height, 0.0, 0.0));   //x(moisture), y(height), 0, 0
 				}
-				//o.worldViewDir = normalize(WorldSpaceViewDir(v.vertex));
+
+				switch (_Modus){
+					case 0:	vertexPos.xyz += normalize(vertexPos.xyz)*(height*_Scale+_BasisHeight);
+					break;
+					case 1: vertexPos.xyz += v.normal*(height*_Scale);
+					break;
+				}	
+				// Convert Vertex Data from Object to Clip Space
 				o.vertex = UnityObjectToClipPos(vertexPos);
-				o.col = tex2Dlod(_ColorMap, float4(moistureLength, distanz, 0.0, 0.0));   //x(moisture), y(height), 0, 0
-				//if VertexHöhe < _LiquidScale -> färbe blau
-
 				
-				
-
 				return o;
 			}
 

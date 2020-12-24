@@ -104,7 +104,7 @@ public class DiamondSquareTerrain : MonoBehaviour {
             for (int j = 0; j < mSizeY; j++)
             {
                 float h = (mVerts[i * (mDivisions + 1) + j].y - minMax[0]) / total;
-                texture.SetPixel(i, j, new Color(h, h, h, 1.0f));
+                texture.SetPixel(i, j, new Vector4(h, 1.0f, 1.0f, 1.0f));
             }
         }
 
