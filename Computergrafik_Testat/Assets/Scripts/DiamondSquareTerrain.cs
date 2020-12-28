@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class DiamondSquareTerrain : MonoBehaviour {
 
-    public int mDivisions;
-    public float mSizeX;
-    public float mSizeY;
-    public float mHeight;
+    public int mDivisions = 256;
+    public float mSizeX = 255;
+    public float mSizeY = 255;
+    public float mHeight = 10;
 
     Vector3[] mVerts;
     int mVertCount;

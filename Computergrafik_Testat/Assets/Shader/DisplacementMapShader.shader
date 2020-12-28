@@ -14,16 +14,20 @@ Shader "CG_Lecture/DisplacementMapShader"
 
 		//LambertShader
 		// Definition der Hauptfarbe.
-		_Color ("Base Color", Color) = (1,1,1,1)	
+		//_Color ("Base Color", Color) = (1,1,1,1)	
 		// Reflektanz des Ambienten Licht
-		_Ka("Ambient Reflectance", Range(0, 1)) = 0.5
+		_Ka("Ambient Reflectance", Range(0, 1)) = 1
 		// Reflektanz des Diffusen Licht
-		_Kd("Diffuse Reflectance", Range(0, 1)) = 0.5
+		_Kd("Diffuse Reflectance", Range(0, 1)) = 1
+		// Spekulare Reflektanz
+		_Ks("Specular Reflectance", Range(0, 1)) = 1
+		// Shininess
+		_Shininess("Shininess", Range(0.1, 1000)) = 100
 		
-        _Scale ("Terrain Scale", float) = 0.5			//Höhe der Berge
-		_BasisHeight("Basis Höhe", float) = 0.5
+        _Scale ("Terrain Scale", Range(0, 1)) = 0.5			//Höhe der Berge
+		_BasisHeight("Basis Höhe", Range(0, 1)) = 0.5
 		_Modus ("GameObject", Range(0, 1)) = 0
-		_LiquidScale ("Liquid Scale", Range(0, 1)) = 0	//gibt Höhe des Wasserspiegels an
+		_LiquidScale ("Liquid Scale", Range(0, 1)) = 0.5	//gibt Höhe des Wasserspiegels an
 
 	}
 
@@ -34,6 +38,7 @@ Shader "CG_Lecture/DisplacementMapShader"
 		// they expect to be rendered to the rendering engine.
 		// https://docs.unity3d.com/Manual/SL-SubShaderTags.html
 		Tags { "RenderType"="Opaque" }
+		LOD 100
 
 		// Each SubShader is composed of a number of passes, and each Pass represents an execution of the vertex and fragment
 		// code for the same object rendered with the material of the shader
@@ -41,6 +46,8 @@ Shader "CG_Lecture/DisplacementMapShader"
 		{
 			// CGPROGRAM ... ENDCG
 			// These keywords surround portions of HLSL code within the vertex and fragment shaders
+			Tags {"LightMode"="ForwardBase"}
+			
 			CGPROGRAM
 
 			// Definition shaders used and their function names
@@ -50,6 +57,34 @@ Shader "CG_Lecture/DisplacementMapShader"
 			// Builtin Includes
 			// https://docs.unity3d.com/Manual/SL-BuiltinIncludes.html
 			#include "UnityCG.cginc"
+			#include "Lighting.cginc" // für Lighting
+
+			
+
+			// struct to pass Data from Vertex Sahder to Fragment Shader
+			struct v2f
+			{
+				// SV_POSITION: Shader semantic for position in Clip Space: https://docs.unity3d.com/Manual/SL-ShaderSemantics.html?_ga=2.64760810.432960686.1524081652-394573263.1524081652
+				float4 vertex : SV_POSITION;
+				float4 col : COLOR;
+
+				// Weitergabe der Textur Koordinaten
+				float2 uv : TEXCOORD0;
+
+				// Oberflächen Normalen
+				half3 worldNormal : TEXCOORD1;
+
+				// Blickrichtung in Welt Koordinaten
+				half3 worldViewDir : TEXCOORD2;
+
+				// these three vectors will hold a 3x3 rotation matrix
+				// that transforms from tangent to world space
+				half3 tspace0 : TEXCOORD3;
+				half3 tspace1 : TEXCOORD4;
+				half3 tspace2 : TEXCOORD5; 
+			};
+
+			//float _MaxDepth;
 
 			sampler2D _HeightMap;
 			float4 _HeightMap_ST;
@@ -63,18 +98,11 @@ Shader "CG_Lecture/DisplacementMapShader"
 			float _Modus;
 			float _BasisHeight;
 
+			float _Ka, _Kd, _Ks;
+			float _Shininess;
+
             // Declare our new parameter here so it's visible to the CG shader
             float4 _ScrollSpeeds;
-
-			// struct to pass Data from Vertex Sahder to Fragment Shader
-			struct v2f
-			{
-				// SV_POSITION: Shader semantic for position in Clip Space: https://docs.unity3d.com/Manual/SL-ShaderSemantics.html?_ga=2.64760810.432960686.1524081652-394573263.1524081652
-				float4 vertex : SV_POSITION;
-				float4 col : COLOR;
-			};
-
-			float _MaxDepth;
 
 			// VERTEX SHADER
 			// https://docs.unity3d.com/Manual/SL-VertexProgramInputs.html
@@ -97,7 +125,7 @@ Shader "CG_Lecture/DisplacementMapShader"
 					o.col = tex2Dlod(_ColorMap, float4(0.05, 0.05, 0.0, 0.0));   //x(moisture), y(height), 0, 0
 				} else 
 				{
-					o.col = tex2Dlod(_ColorMap, float4(moistureLength, height, 0.0, 0.0));   //x(moisture), y(height), 0, 0
+					o.col = tex2Dlod(_ColorMap, float4(moistureLength, height, 0.0, 0.0));   //x(moisture), y(height), 0, 0					
 				}
 
 				switch (_Modus){
@@ -108,7 +136,29 @@ Shader "CG_Lecture/DisplacementMapShader"
 				}	
 				// Convert Vertex Data from Object to Clip Space
 				o.vertex = UnityObjectToClipPos(vertexPos);
-				
+				//o.worldNormal = UnityObjectToWorldNormal(v.normal);
+
+				// Berechnung der Blickrichtung in Welt Koordinaten
+				o.worldViewDir = normalize(WorldSpaceViewDir(v.vertex));
+
+				half3 wNormal = UnityObjectToWorldNormal(v.normal);
+				half3 wTangent = UnityObjectToWorldDir(v.tangent);
+
+				// compute bitangent from cross product of normal and tangent
+				// bitanget vector is needed to convert the normal from the normal map into world space
+				// see: http://www.opengl-tutorial.org/intermediate-tutorials/tutorial-13-normal-mapping/
+				half3 wBitangent = cross(wNormal, wTangent);
+
+				// output the tangent space matrix
+				o.tspace0 = half3(wTangent.x, wBitangent.x, wNormal.x);
+				o.tspace1 = half3(wTangent.y, wBitangent.y, wNormal.y);
+				o.tspace2 = half3(wTangent.z, wBitangent.z, wNormal.z); 			
+
+				// output normal vector
+				o.worldNormal = wNormal;
+
+				// output texture coordinates
+				o.uv = v.texcoord;
 				return o;
 			}
 
@@ -116,9 +166,63 @@ Shader "CG_Lecture/DisplacementMapShader"
 			// SV_Target: Shader semantic render target (SV_Target = SV_Target0): https://docs.unity3d.com/Manual/SL-ShaderSemantics.html?_ga=2.64760810.432960686.1524081652-394573263.1524081652
 			fixed4 frag (v2f i) : SV_Target
 			{
-				fixed4 col = i.col;
+				
+				fixed4 color = i.col;
 
-				return col;
+				fixed4 waterColor = tex2Dlod(_ColorMap, float4(0.05, 0.05, 0.0, 0.0)); 
+
+				half3 tnormal = UnpackNormal(tex2D(_HeightMap, i.uv));
+				
+				// transform normal from tangent to world space
+                half3 normal;
+				
+                normal.x = dot(i.tspace0, tnormal);
+                normal.y = dot(i.tspace1, tnormal);
+                normal.z = dot(i.tspace2, tnormal);
+
+				// Ambiente Licht Farbe
+				// das gesamte ambiente Licht der Szene wird durch die Funktion ShadeSH9 (Teil von UnityCG.cginc) ausgewertet
+				// Dazu werden die homogenen Oberflächen Normalen in Welt-Koordinaten verwendet.
+				float4 amb = float4(ShadeSH9(half4(normal,1)),1);
+
+				// Standard Diffuse (Lambert) Shading
+				// Gewichtung durch Skalarprodukt (Dot-Produkt) zwischen Normalen-Vektor
+				// Richtung der Beleuchtungsquelle
+
+				// WICHTIG: Bei Direktionalem Licht gibt _WorldSpaceLightPos0 die Richtung der Lichtquelle an. 
+				// Bei Anderen Lichtquellen gibt es die Homogenen Koordinaten der Lichtquelle in Welt-Koordinaten an.
+				// https://docs.unity3d.com/Manual/SL-UnityShaderVariables.html
+                half nl = max(0, dot(normal, _WorldSpaceLightPos0.xyz));
+                
+				// Diffuser Anteil multipliziert mit der Lichtfarbe
+                float4 diff = nl * _LightColor0;
+
+
+				float3 worldSpaceReflection = reflect(normalize(-_WorldSpaceLightPos0.xyz), normal);
+				half re = pow(max(dot(worldSpaceReflection, i.worldViewDir), 0), _Shininess);
+
+				float4 spec = re * _LightColor0;
+
+				// Greife den pixel der Textur an der Stelle (u;v) ab und setze ihn als Farbe.                
+				//color = tex2D(_ColorTex, i.uv);
+
+				bool isColor = (color == waterColor);
+
+				
+
+				if (isColor) {	
+					color *= _Ka*amb + _Kd* diff;
+					color +=  _Ks* spec;
+				} else {
+					color *= _Ka*amb + _Kd* diff;
+				}
+				
+				// Multiplikation der Grundfarbe mit dem Ambienten- und dem Diffusions-Anteil
+				// Der Diffuse und Ambiente Anteil wird jeweils mit der entsprechenden Reflektanz der Oberfläche (_Ka, _Kd) gewichtet.
+				
+
+				return saturate(color);
+				//return color;
 			}
 			ENDCG
 		}
