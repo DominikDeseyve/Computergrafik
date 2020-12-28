@@ -10,7 +10,9 @@ Shader "CG_Lecture/DisplacementMapShader"
         _HeightMap ("Height Map", 2D) = "bump" {}
 		_MoistureMap ("Moisture Map", 2D) = "normal" {}
 		_ColorMap ("Color Map", 2D) = "normal" {}
-		_WaterMap ("Water Map", 2D) = "normal" {}
+		_WaterMap1 ("Water Map", 2D) = "normal" {}
+		_WaterMap2 ("Water Map", 2D) = "normal" {}
+
 
 		//LambertShader
 		// Definition der Hauptfarbe.
@@ -46,8 +48,7 @@ Shader "CG_Lecture/DisplacementMapShader"
 		{
 			// CGPROGRAM ... ENDCG
 			// These keywords surround portions of HLSL code within the vertex and fragment shaders
-			Tags {"LightMode"="ForwardBase"}
-			
+			Tags {"LightMode"="ForwardBase"}		
 			CGPROGRAM
 
 			// Definition shaders used and their function names
@@ -94,12 +95,15 @@ Shader "CG_Lecture/DisplacementMapShader"
 
 			sampler2D _MoistureMap;
 
+			sampler2D _WaterMap1, _WaterMap2;
+
 			float _LiquidScale;
 			float _Modus;
 			float _BasisHeight;
 
 			float _Ka, _Kd, _Ks;
 			float _Shininess;
+			float4 _Color;
 
             // Declare our new parameter here so it's visible to the CG shader
             float4 _ScrollSpeeds;
@@ -122,7 +126,7 @@ Shader "CG_Lecture/DisplacementMapShader"
 				if (height <= _LiquidScale) 
 				{
 					height = _LiquidScale;
-					o.col = tex2Dlod(_ColorMap, float4(0.05, 0.05, 0.0, 0.0));   //x(moisture), y(height), 0, 0
+					o.col = tex2Dlod(_ColorMap, float4(0.0, 0.0, 0.0, 0.0));   //x(moisture), y(height), 0, 0
 				} else 
 				{
 					o.col = tex2Dlod(_ColorMap, float4(moistureLength, height, 0.0, 0.0));   //x(moisture), y(height), 0, 0					
@@ -136,10 +140,10 @@ Shader "CG_Lecture/DisplacementMapShader"
 				}	
 				// Convert Vertex Data from Object to Clip Space
 				o.vertex = UnityObjectToClipPos(vertexPos);
-				//o.worldNormal = UnityObjectToWorldNormal(v.normal);
+				o.worldNormal = UnityObjectToWorldNormal(v.normal);
 
 				// Berechnung der Blickrichtung in Welt Koordinaten
-				o.worldViewDir = normalize(WorldSpaceViewDir(v.vertex));
+				o.worldViewDir = normalize(WorldSpaceViewDir(vertexPos));
 
 				half3 wNormal = UnityObjectToWorldNormal(v.normal);
 				half3 wTangent = UnityObjectToWorldDir(v.tangent);
@@ -169,16 +173,17 @@ Shader "CG_Lecture/DisplacementMapShader"
 				
 				fixed4 color = i.col;
 
-				fixed4 waterColor = tex2Dlod(_ColorMap, float4(0.05, 0.05, 0.0, 0.0)); 
+				fixed4 waterColor = tex2Dlod(_ColorMap, float4(0.0, 0.0, 0.0, 0.0)); 
 
-				half3 tnormal = UnpackNormal(tex2D(_HeightMap, i.uv));
+				half3 tnormal = i.worldNormal.xyz;
 				
 				// transform normal from tangent to world space
-                half3 normal;
+                half3 normal = tnormal;
 				
-                normal.x = dot(i.tspace0, tnormal);
-                normal.y = dot(i.tspace1, tnormal);
-                normal.z = dot(i.tspace2, tnormal);
+				// Für Wellenanimation
+                //normal.x = dot(i.tspace0, tnormal);
+                //normal.y = dot(i.tspace1, tnormal);
+                //normal.z = dot(i.tspace2, tnormal);
 
 				// Ambiente Licht Farbe
 				// das gesamte ambiente Licht der Szene wird durch die Funktion ShadeSH9 (Teil von UnityCG.cginc) ausgewertet
@@ -212,7 +217,7 @@ Shader "CG_Lecture/DisplacementMapShader"
 
 				if (isColor) {	
 					color *= _Ka*amb + _Kd* diff;
-					color +=  _Ks* spec;
+					color += _Ks* spec;
 				} else {
 					color *= _Ka*amb + _Kd* diff;
 				}
