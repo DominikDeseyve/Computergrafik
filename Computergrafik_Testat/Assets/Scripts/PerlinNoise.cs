@@ -46,6 +46,6 @@ public class PerlinNoise : MonoBehaviour
         float xCoord = (float)x / width * scale;
         float yCoord = (float)y / height * scale;
         float sample = Mathf.PerlinNoise(xCoord, yCoord);
-        return new Color(sample, sample, sample);
+        return new Color(sample, 1f, 1f);
     }
 }

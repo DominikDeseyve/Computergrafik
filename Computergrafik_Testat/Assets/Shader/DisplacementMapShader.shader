@@ -10,8 +10,8 @@ Shader "CG_Lecture/DisplacementMapShader"
         _HeightMap ("Height Map", 2D) = "bump" {}
 		_MoistureMap ("Moisture Map", 2D) = "normal" {}
 		_ColorMap ("Color Map", 2D) = "normal" {}
-		_WaterMap1 ("Water Map", 2D) = "normal" {}
-		_WaterMap2 ("Water Map", 2D) = "normal" {}
+		_WaterMap1 ("Water Map 1", 2D) = "normal" {}
+		_WaterMap2 ("Water Map 2", 2D) = "normal" {}
 
 
 		//LambertShader
@@ -26,10 +26,13 @@ Shader "CG_Lecture/DisplacementMapShader"
 		// Shininess
 		_Shininess("Shininess", Range(0.1, 1000)) = 100
 		
-        _Scale ("Terrain Scale", Range(0, 1)) = 0.5			//Höhe der Berge
-		_BasisHeight("Basis Höhe", Range(0, 1)) = 0.5
-		_Modus ("GameObject", Range(0, 1)) = 0
+        _Scale ("Terrain Scale", Range(0, 1000)) = 0.5			//Höhe der Berge
+		_BasisHeight("Basis Height", Range(0, 1)) = 0.5
+		[Toggle]
+		_Modus ("useNormals", Float) = 0
 		_LiquidScale ("Liquid Scale", Range(0, 1)) = 0.5	//gibt Höhe des Wasserspiegels an
+		_WaterSpeed ("WaterSpeed", Range(0,2)) = 0.8
+		
 
 	}
 
@@ -83,6 +86,8 @@ Shader "CG_Lecture/DisplacementMapShader"
 				half3 tspace0 : TEXCOORD3;
 				half3 tspace1 : TEXCOORD4;
 				half3 tspace2 : TEXCOORD5; 
+
+				float land : TEXCOORD6;	//gibt an ob Land oder Wasser
 			};
 
 			//float _MaxDepth;
@@ -98,6 +103,7 @@ Shader "CG_Lecture/DisplacementMapShader"
 			sampler2D _WaterMap1, _WaterMap2;
 
 			float _LiquidScale;
+			float _WaterSpeed;
 			float _Modus;
 			float _BasisHeight;
 
@@ -120,16 +126,19 @@ Shader "CG_Lecture/DisplacementMapShader"
 
 				// Access texture and extract color value
 				float height = tex2Dlod(_HeightMap, float4(v.texcoord.xy, 0, 0)).x;
-				fixed4 moisture = tex2Dlod(_MoistureMap, float4(v.texcoord.xy, 0, 0));
+				float moisture = tex2Dlod(_MoistureMap, float4(v.texcoord.xy, 0, 0)).x;
 
-				float moistureLength = sqrt(float(moisture.x)*float(moisture.x)+float(moisture.y)*float(moisture.y)+float(moisture.z)*float(moisture.z));
+				//float moistureLength = sqrt(float(moisture.x)*float(moisture.x)+float(moisture.y)*float(moisture.y)+float(moisture.z)*float(moisture.z));
+
 				if (height <= _LiquidScale) 
 				{
 					height = _LiquidScale;
+					o.land = 0;
 					o.col = tex2Dlod(_ColorMap, float4(0.0, 0.0, 0.0, 0.0));   //x(moisture), y(height), 0, 0
 				} else 
 				{
-					o.col = tex2Dlod(_ColorMap, float4(moistureLength, height, 0.0, 0.0));   //x(moisture), y(height), 0, 0					
+					o.land = 1;
+					o.col = tex2Dlod(_ColorMap, float4(moisture, height, 0.0, 0.0));   //x(moisture), y(height), 0, 0					
 				}
 
 				switch (_Modus){
@@ -159,7 +168,7 @@ Shader "CG_Lecture/DisplacementMapShader"
 				o.tspace2 = half3(wTangent.z, wBitangent.z, wNormal.z); 			
 
 				// output normal vector
-				o.worldNormal = wNormal;
+				//o.worldNormal = wNormal;
 
 				// output texture coordinates
 				o.uv = v.texcoord;
@@ -174,16 +183,19 @@ Shader "CG_Lecture/DisplacementMapShader"
 				fixed4 color = i.col;
 
 				fixed4 waterColor = tex2Dlod(_ColorMap, float4(0.0, 0.0, 0.0, 0.0)); 
-
-				half3 tnormal = i.worldNormal.xyz;
 				
 				// transform normal from tangent to world space
-                half3 normal = tnormal;
+                half3 normal;
 				
 				// Für Wellenanimation
-                //normal.x = dot(i.tspace0, tnormal);
-                //normal.y = dot(i.tspace1, tnormal);
-                //normal.z = dot(i.tspace2, tnormal);
+				if (i.land) {
+					normal = i.worldNormal;
+				} else {
+					half3 tnormal = normalize(UnpackNormal(tex2D(_WaterMap1, i.uv - _WaterSpeed*_Time.xx)) + UnpackNormal(tex2D(_WaterMap2, i.uv + _WaterSpeed*0.5*_Time.xx)));
+                	normal.x = dot(i.tspace0, tnormal);
+                	normal.y = dot(i.tspace1, tnormal);
+                	normal.z = dot(i.tspace2, tnormal);
+				}
 
 				// Ambiente Licht Farbe
 				// das gesamte ambiente Licht der Szene wird durch die Funktion ShadeSH9 (Teil von UnityCG.cginc) ausgewertet
@@ -211,20 +223,15 @@ Shader "CG_Lecture/DisplacementMapShader"
 				// Greife den pixel der Textur an der Stelle (u;v) ab und setze ihn als Farbe.                
 				//color = tex2D(_ColorTex, i.uv);
 
-				bool isColor = (color == waterColor);
+				//bool isColor = (color == waterColor);				
 
-				
-
-				if (isColor) {	
+				if (i.land) {	
 					color *= _Ka*amb + _Kd* diff;
-					color += _Ks* spec;
+					
 				} else {
 					color *= _Ka*amb + _Kd* diff;
-				}
-				
-				// Multiplikation der Grundfarbe mit dem Ambienten- und dem Diffusions-Anteil
-				// Der Diffuse und Ambiente Anteil wird jeweils mit der entsprechenden Reflektanz der Oberfläche (_Ka, _Kd) gewichtet.
-				
+					color += _Ks* spec;
+				}	
 
 				return saturate(color);
 				//return color;

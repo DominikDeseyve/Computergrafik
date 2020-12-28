@@ -4,10 +4,14 @@ using UnityEngine;
 
 public class DiamondSquareTerrain : MonoBehaviour {
 
-    public int mDivisions = 256;
+    private int mDivisions;
+    private float size;
+    private float n;
     public float mSizeX = 255;
     public float mSizeY = 255;
     public float mHeight = 10;
+    [Range(0, 1)]
+    public float Detailierungsgrad = 0.8f;
 
     Vector3[] mVerts;
     int mVertCount;
@@ -19,13 +23,19 @@ public class DiamondSquareTerrain : MonoBehaviour {
     }
 
     void CreateTerrain() {
+
+        size = (mSizeX >= mSizeY) ? (mSizeX-1) : (mSizeY-1);
+        n = Mathf.Ceil(Mathf.Log(size, 2));
+        mDivisions = (int)Mathf.Pow(2, n);
+        size = mDivisions+1; 
+
         mVertCount = (mDivisions+1)*(mDivisions+1);
         mVerts = new Vector3[mVertCount];
         Vector2[] uvs = new Vector2[mVertCount];
         int[] tris = new int[mDivisions*mDivisions*6];
 
-        float halfSize = (mSizeX >= mSizeY) ? mSizeX*0.5f : mSizeY*0.5f;
-        float divisionSize = (mSizeX >= mSizeY) ? mSizeX/mDivisions : mSizeY/mDivisions;
+        float halfSize = size*0.5f;
+        float divisionSize = size/mDivisions;
 
         //Mesh mesh = new Mesh();
         //GetComponent<MeshFilter>().mesh = mesh;
@@ -81,7 +91,7 @@ public class DiamondSquareTerrain : MonoBehaviour {
             }
             numSquares *= 2;
             squareSize /= 2;
-            mHeight *= 0.5f;
+            mHeight *= Detailierungsgrad;
         }
 
         /*mesh.vertices = mVerts;
