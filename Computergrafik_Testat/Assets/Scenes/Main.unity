@@ -591,10 +591,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49273837d0dfe384b9b2ea30329260ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mSizeX: 129
-  mSizeY: 129
+  mSizeX: 1024
+  mSizeY: 1024
   mHeight: 30
-  Detailierungsgrad: 0.85
+  Detailierungsgrad: 0.7
 --- !u!114 &919132147709241706
 MonoBehaviour:
   m_ObjectHideFlags: 0

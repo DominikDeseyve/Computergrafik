@@ -13,6 +13,7 @@ Shader "Testat/TerrainShader"
 		_ColorMap ("Color Map", 2D) = "normal" {}
 		_WaterMap1 ("Water Map 1", 2D) = "normal" {}
 		_WaterMap2 ("Water Map 2", 2D) = "normal" {}
+		_LandMap ("Land Map", 2D) = "normal" {}
 
 		[Header(Reflection)]
 		[Space(15)]
@@ -30,14 +31,16 @@ Shader "Testat/TerrainShader"
 		
 		[Header(Mountains)]
 		[Space(15)]
-        _Scale ("Terrain Scale", Range(0, 1000)) = 0.5			//Höhe der Berge
+		//Höhe der Berge
+        _Scale ("Terrain Scale", Range(0, 1000)) = 0.5			
 		_BasisHeight("Basis Height", Range(0, 1)) = 0.5
 		[Toggle]
 		_Modus ("useNormals", Float) = 0
 
 		[Header(Water)]
 		[Space(15)]	
-		_LiquidScale ("Liquid Scale", Range(0, 1)) = 0.5	//gibt Höhe des Wasserspiegels an
+		//Höhe des Wasserspiegels
+		_LiquidScale ("Liquid Scale", Range(0, 1)) = 0.5	
 		_WaterSpeed ("WaterSpeed", Range(0,2)) = 0.8
 		
 
@@ -108,6 +111,8 @@ Shader "Testat/TerrainShader"
 			sampler2D _MoistureMap;
 
 			sampler2D _WaterMap1, _WaterMap2;
+
+			sampler2D _LandMap;
 
 			float _LiquidScale;
 			float _WaterSpeed;
@@ -185,18 +190,19 @@ Shader "Testat/TerrainShader"
 			// FRAGMENT / PIXEL SHADER
 			// SV_Target: Shader semantic render target (SV_Target = SV_Target0): https://docs.unity3d.com/Manual/SL-ShaderSemantics.html?_ga=2.64760810.432960686.1524081652-394573263.1524081652
 			fixed4 frag (v2f i) : SV_Target
-			{
-				
+			{				
 				fixed4 color = i.col;
 
 				fixed4 waterColor = tex2Dlod(_ColorMap, float4(0.0, 0.0, 0.0, 0.0)); 
 				
-				// transform normal from tangent to world space
                 half3 normal;
 				
-				// Für Wellenanimation
 				if (i.land) {
-					normal = i.worldNormal;
+					//normal = i.worldNormal;
+					half3 tnormal = normalize(UnpackNormal(tex2D(_LandMap, i.uv)));
+                	normal.x = dot(i.tspace0, tnormal);
+                	normal.y = dot(i.tspace1, tnormal);
+                	normal.z = dot(i.tspace2, tnormal);
 				} else {
 					half3 tnormal = normalize(UnpackNormal(tex2D(_WaterMap1, i.uv - _WaterSpeed*_Time.xx)) + UnpackNormal(tex2D(_WaterMap2, i.uv + _WaterSpeed*0.5*_Time.xx)));
                 	normal.x = dot(i.tspace0, tnormal);
