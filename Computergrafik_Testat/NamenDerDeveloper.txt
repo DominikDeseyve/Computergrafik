@@ -1,6 +1,0 @@
-Name, Vorname		- Matrikelnummer
------------------------------------------
-Fricker, Robin		- 2205602
-Betz, Florian		- 6017787
-Rapp, Sebastian		- 5644223
-Deseyve, Dominik	- 8380822
