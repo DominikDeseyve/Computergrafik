@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class MapController : MonoBehaviour
 {
-    public float length = 255;
-    public float width = 255;
+    public int length = 255;
+    public int width = 255;
     public float height = 10f;
 
     public float moistureScale = 10f;
@@ -17,12 +17,12 @@ public class MapController : MonoBehaviour
     void Start()
     {
         // PerlinNoise 
-        //PerlinNoise perlinNoise = (PerlinNoise) ScriptableObject.CreateInstance("PerlinNoise");
-        //GetComponent<Renderer>().material.SetTexture("_MoistureMap", perlinNoise.GenerateTexture(width, height));
+        PerlinNoise perlinNoise = (PerlinNoise)ScriptableObject.CreateInstance<PerlinNoise>();
+        GetComponent<Renderer>().material.SetTexture("_MoistureMap", perlinNoise.GenerateTexture(width, length, moistureScale));
 
         // DiamondSquareTerrain
-        //DiamondSquareTerrain diamondSquare = (DiamondSquareTerrain) ScriptableObject.CreateInstance("DiamondSquareTerrain");
-        //GetComponent<Renderer>().material.SetTexture("_HeightMap", diamondSquare.CreateTerrain());
+        DiamondSquareTerrain diamondSquare = (DiamondSquareTerrain)ScriptableObject.CreateInstance<DiamondSquareTerrain>();
+        GetComponent<Renderer>().material.SetTexture("_HeightMap", diamondSquare.CreateTerrain(width, length, height));
 
         // NormalMap
         //NormalMap normalMap = (NormalMap) ScriptableObject.CreateInstance("NormalMap");
