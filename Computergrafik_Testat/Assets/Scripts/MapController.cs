@@ -4,22 +4,29 @@ using UnityEngine;
 
 public class MapController : MonoBehaviour
 {
-    public int height;
-    public int width;
+    public float height = 255;
+    public float width = 255;
+    public float height = 10;
+
+    public float moistureScale = 10f;
+
+    [Range(0, 1)]
+    public float detailLevel = 0.8f;
+
 
     void Start()
     {
-        // DisplacementMap
-
-
         // PerlinNoise 
-        //PerlinNoise perlinNoise = (PerlinNoise)ScriptableObject.CreateInstance("PerlinNoise");
-        //GetComponent<Renderer>().material.SetTexture("_PerlinNoise", perlinNoise.texture);
+        //PerlinNoise perlinNoise = (PerlinNoise) ScriptableObject.CreateInstance("PerlinNoise");
+        //GetComponent<Renderer>().material.SetTexture("_MoistureMap", perlinNoise.GenerateTexture(width, height));
 
-        // ColorMap
-        ColorMap colorMap = (ColorMap)ScriptableObject.CreateInstance("ColorMap");
-        GetComponent<Renderer>().material.SetTexture("_ColorMap", colorMap.texture);
+        // DiamondSquareTerrain
+        //DiamondSquareTerrain diamondSquare = (DiamondSquareTerrain) ScriptableObject.CreateInstance("DiamondSquareTerrain");
+        //GetComponent<Renderer>().material.SetTexture("_HeightMap", diamondSquare.CreateTerrain());
 
+        // NormalMap
+        //NormalMap normalMap = (NormalMap) ScriptableObject.CreateInstance("NormalMap");
+        //GetComponent<Renderer>().material.SetTexture("_NormalMap", normalMap.CreateTerrain());
     }
 
     // Update is called once per frame

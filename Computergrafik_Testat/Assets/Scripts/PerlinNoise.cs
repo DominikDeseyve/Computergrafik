@@ -4,27 +4,18 @@ using UnityEngine;
 
 public class PerlinNoise : MonoBehaviour
 {
-    public int height;
-    public int width;
-    private float scale = 10f;
+    public int height = 256;
+    public int width = 256;
+    private float moistureScale = 10f;
 
     public Texture2D texture;
 
     private void Start()
     {
-
-        height = 256;
-        width = 256;
-        scale = 10f;
         GenerateTexture(width, height);
     }
 
-    public Texture2D getMoistureMap(int pX, int pY)
-    {
-        return GenerateTexture(pX, pY);
-    }
-
-    private Texture2D GenerateTexture(int pX, int pY)
+    public Texture2D GenerateTexture(int pX, int pY)
     {
         Texture2D texture = new Texture2D(pX, pY);
 
@@ -36,6 +27,7 @@ public class PerlinNoise : MonoBehaviour
                 texture.SetPixel(x, y, color);
             }
         }
+        
         GetComponent<Renderer>().material.SetTexture("_MoistureMap", texture);
         texture.Apply();
         return texture;
@@ -43,8 +35,8 @@ public class PerlinNoise : MonoBehaviour
 
     private Color CalculateColor(int x, int y)
     {
-        float xCoord = (float)x / width * scale;
-        float yCoord = (float)y / height * scale;
+        float xCoord = (float)x / width * moistureScale;
+        float yCoord = (float)y / height * moistureScale;
         float sample = Mathf.PerlinNoise(xCoord, yCoord);
         return new Color(sample, 1f, 1f);
     }

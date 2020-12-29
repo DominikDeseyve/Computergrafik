@@ -10,6 +10,7 @@ public class DiamondSquareTerrain : MonoBehaviour {
     public float mSizeX = 255;
     public float mSizeY = 255;
     public float mHeight = 10;
+
     [Range(0, 1)]
     public float Detailierungsgrad = 0.8f;
 
@@ -36,11 +37,6 @@ public class DiamondSquareTerrain : MonoBehaviour {
 
         float halfSize = size*0.5f;
         float divisionSize = size/mDivisions;
-
-        //Mesh mesh = new Mesh();
-        //GetComponent<MeshFilter>().mesh = mesh;
-
-        //int triOffset = 0;
 
         for(int i= 0; i <= mDivisions; i++) {
 
@@ -75,6 +71,7 @@ public class DiamondSquareTerrain : MonoBehaviour {
         int iterations = (int)Mathf.Log(mDivisions, 2);
         int numSquares = 1;
         int squareSize = mDivisions;
+        
         for(int i = 0; i < iterations; i++) {
 
             int row = 0;
@@ -94,15 +91,7 @@ public class DiamondSquareTerrain : MonoBehaviour {
             mHeight *= Detailierungsgrad;
         }
 
-        /*mesh.vertices = mVerts;
-        mesh.uv = uvs;
-        mesh.triangles = tris;
-
-        mesh.RecalculateBounds();
-        mesh.RecalculateNormals();*/
-
-
-    float[] minMax = minMaxHeight();
+        float[] minMax = minMaxHeight();
 
         var texture = new Texture2D((int)mSizeX, (int)mSizeY);     //Variable am Anfang für Größe der Textur
 
@@ -120,9 +109,7 @@ public class DiamondSquareTerrain : MonoBehaviour {
 
         GetComponent<Renderer>().material.SetTexture("_HeightMap", texture);
         texture.Apply();
-
     }
-
 
     float[] minMaxHeight()
     {
@@ -135,8 +122,6 @@ public class DiamondSquareTerrain : MonoBehaviour {
         }
         return new float[2] { min, max };
     }
-
-    
 
     void DiamondSquare(int row, int col, int size, float offset) {
 
