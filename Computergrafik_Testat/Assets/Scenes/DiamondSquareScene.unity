@@ -168,10 +168,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49273837d0dfe384b9b2ea30329260ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mSizeX: 234
-  mSizeY: 100
-  mHeight: 10
-  Detailierungsgrad: 0.8
+  mSizeX: 1024
+  mSizeY: 1024
+  mHeight: 20
+  Detailierungsgrad: 0.604
 --- !u!114 &155275908
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -381,7 +381,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 122.5
+  field of view: 85
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
