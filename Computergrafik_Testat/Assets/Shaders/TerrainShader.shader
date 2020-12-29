@@ -1,4 +1,4 @@
-Shader "CG_Lecture/DisplacementMapShader"
+Shader "Testat/TerrainShader"
 {
 	// Tutorial - Vertex und Fragment Shader examples: https://docs.unity3d.com/Manual/SL-VertexFragmentShaderExamples.html
 	// DOC: How to write vertex and fragment shaders: https://docs.unity3d.com/Manual/SL-ShaderPrograms.html
@@ -6,12 +6,16 @@ Shader "CG_Lecture/DisplacementMapShader"
 	// Property Definition --> Visible in IDE
 	Properties
 	{
+        [Header(Maps)]
+		[Space(15)]
         _HeightMap ("Height Map", 2D) = "bump" {}
 		_MoistureMap ("Moisture Map", 2D) = "normal" {}
 		_ColorMap ("Color Map", 2D) = "normal" {}
 		_WaterMap1 ("Water Map 1", 2D) = "normal" {}
 		_WaterMap2 ("Water Map 2", 2D) = "normal" {}
 
+		[Header(Reflection)]
+		[Space(15)]
 		//LambertShader
 		// Definition der Hauptfarbe.
 		//_Color ("Base Color", Color) = (1,1,1,1)	
@@ -24,14 +28,19 @@ Shader "CG_Lecture/DisplacementMapShader"
 		// Shininess
 		_Shininess("Shininess", Range(0.1, 1000)) = 100
 		
-        _Scale ("Terrain Scale", Range(0, 1000)) = 0.4		//Höhe der Berge
+		[Header(Mountains)]
+		[Space(15)]
+        _Scale ("Terrain Scale", Range(0, 1000)) = 0.5			//Höhe der Berge
 		_BasisHeight("Basis Height", Range(0, 1)) = 0.5
-		
 		[Toggle]
 		_Modus ("useNormals", Float) = 0
 
+		[Header(Water)]
+		[Space(15)]	
 		_LiquidScale ("Liquid Scale", Range(0, 1)) = 0.5	//gibt Höhe des Wasserspiegels an
-		_WaterSpeed ("WaterSpeed", Range(0,1)) = 0.3
+		_WaterSpeed ("WaterSpeed", Range(0,2)) = 0.8
+		
+
 	}
 
 	// A Shader can contain one or more SubShaders, which are primarily used to implement shaders for different GPU capabilities
@@ -61,6 +70,7 @@ Shader "CG_Lecture/DisplacementMapShader"
 			#include "UnityCG.cginc"
 			#include "Lighting.cginc" // für Lighting
 
+			
 
 			// struct to pass Data from Vertex Sahder to Fragment Shader
 			struct v2f
@@ -84,7 +94,7 @@ Shader "CG_Lecture/DisplacementMapShader"
 				half3 tspace1 : TEXCOORD4;
 				half3 tspace2 : TEXCOORD5; 
 
-				bool isLand : TEXCOORD6;	//gibt an ob es sich um Land oder Wasser handelt (LAND == TRUE; WASSER == FALSE)
+				float land : TEXCOORD6;	//gibt an ob Land oder Wasser
 			};
 
 			//float _MaxDepth;
@@ -125,26 +135,25 @@ Shader "CG_Lecture/DisplacementMapShader"
 				float height = tex2Dlod(_HeightMap, float4(v.texcoord.xy, 0, 0)).x;
 				float moisture = tex2Dlod(_MoistureMap, float4(v.texcoord.xy, 0, 0)).x;
 
+				//float moistureLength = sqrt(float(moisture.x)*float(moisture.x)+float(moisture.y)*float(moisture.y)+float(moisture.z)*float(moisture.z));
 
 				if (height <= _LiquidScale) 
 				{
 					height = _LiquidScale;
-					o.isLand = false;
-					o.col = tex2Dlod(_ColorMap, float4(0.05, 0.05, 0.0, 0.0));   //x(moisture), y(height), 0, 0
+					o.land = 0;
+					o.col = tex2Dlod(_ColorMap, float4(0.0, 0.0, 0.0, 0.0));   //x(moisture), y(height), 0, 0
 				} else 
 				{
-					o.isLand = true;
-					//o.col = tex2Dlod(_ColorMap, float4(moisture, height - _LiquidScale + 0.1f, 0.0, 0.0));
+					o.land = 1;
 					o.col = tex2Dlod(_ColorMap, float4(moisture, height, 0.0, 0.0));   //x(moisture), y(height), 0, 0					
 				}
 
 				switch (_Modus){
-					case 0:	vertexPos.xyz += normalize(vertexPos.xyz) * (height * _Scale / 1000 + _BasisHeight);
+					case 0:	vertexPos.xyz += normalize(vertexPos.xyz)*(height*_Scale+_BasisHeight);
 					break;
-					case 1: vertexPos.xyz += v.normal * (height * _Scale);
+					case 1: vertexPos.xyz += v.normal*(height*_Scale);
 					break;
 				}	
-				
 				// Convert Vertex Data from Object to Clip Space
 				o.vertex = UnityObjectToClipPos(vertexPos);
 				o.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -177,13 +186,16 @@ Shader "CG_Lecture/DisplacementMapShader"
 			// SV_Target: Shader semantic render target (SV_Target = SV_Target0): https://docs.unity3d.com/Manual/SL-ShaderSemantics.html?_ga=2.64760810.432960686.1524081652-394573263.1524081652
 			fixed4 frag (v2f i) : SV_Target
 			{
+				
 				fixed4 color = i.col;
+
+				fixed4 waterColor = tex2Dlod(_ColorMap, float4(0.0, 0.0, 0.0, 0.0)); 
 				
 				// transform normal from tangent to world space
                 half3 normal;
 				
 				// Für Wellenanimation
-				if (i.isLand) {
+				if (i.land) {
 					normal = i.worldNormal;
 				} else {
 					half3 tnormal = normalize(UnpackNormal(tex2D(_WaterMap1, i.uv - _WaterSpeed*_Time.xx)) + UnpackNormal(tex2D(_WaterMap2, i.uv + _WaterSpeed*0.5*_Time.xx)));
@@ -213,9 +225,14 @@ Shader "CG_Lecture/DisplacementMapShader"
 				float3 worldSpaceReflection = reflect(normalize(-_WorldSpaceLightPos0.xyz), normal);
 				half re = pow(max(dot(worldSpaceReflection, i.worldViewDir), 0), _Shininess);
 
-				float4 spec = re * _LightColor0;			
+				float4 spec = re * _LightColor0;
 
-				if (i.isLand) {	
+				// Greife den pixel der Textur an der Stelle (u;v) ab und setze ihn als Farbe.                
+				//color = tex2D(_ColorTex, i.uv);
+
+				//bool isColor = (color == waterColor);				
+
+				if (i.land) {	
 					color *= _Ka*amb + _Kd* diff;
 					
 				} else {
@@ -224,6 +241,7 @@ Shader "CG_Lecture/DisplacementMapShader"
 				}	
 
 				return saturate(color);
+				//return color;
 			}
 			ENDCG
 		}

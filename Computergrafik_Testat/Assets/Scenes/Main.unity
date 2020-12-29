@@ -153,8 +153,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 411c7bc5aa852a848a4c013502154c36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  height: 0
-  width: 0
+  height: 256
+  width: 256
   texture: {fileID: 0}
 --- !u!114 &155275907
 MonoBehaviour:
@@ -168,9 +168,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 49273837d0dfe384b9b2ea30329260ab, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mSizeX: 1024
-  mSizeY: 1024
-  mHeight: 20
+  mSizeX: 129
+  mSizeY: 129
+  mHeight: 10
   Detailierungsgrad: 0.604
 --- !u!114 &155275908
 MonoBehaviour:
@@ -202,7 +202,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 0c6be3e21811ffc47957e98c59313a76, type: 2}
+  - {fileID: 2100000, guid: 40f29d558f17b7b4bb4dc9b6673d9271, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -230,13 +230,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 155275905}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.138938, y: 1.1193314, z: -1.2795905}
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: -10, y: 0, z: 7}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!1 &705507993
 GameObject:
   m_ObjectHideFlags: 0
@@ -381,7 +381,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 85
+  field of view: 60
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -407,7 +407,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 22743, y: 48317, z: -33687}
+  m_LocalPosition: {x: -18893, y: 48317, z: -57726}
   m_LocalScale: {x: 10, y: 10, z: 10}
   m_Children: []
   m_Father: {fileID: 987165543}
@@ -521,14 +521,14 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 987165538}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.87, y: 2.8202848, z: -1.9427022}
+  m_LocalRotation: {x: 0.21417151, y: 0.64074033, z: -0.19284092, w: 0.7116142}
+  m_LocalPosition: {x: -3.36, y: -3.21, z: 0.1}
   m_LocalScale: {x: 0.0001, y: 0.0001, z: 0.0001}
   m_Children:
   - {fileID: 963194228}
   m_Father: {fileID: 0}
   m_RootOrder: 3
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 33.5, y: 84, z: 0}
 --- !u!4 &543450651966419933
 Transform:
   m_ObjectHideFlags: 0
@@ -536,13 +536,13 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 919132147709241703}
-  m_LocalRotation: {x: -0.7071068, y: 0, z: -0, w: 0.7071067}
+  m_LocalRotation: {x: -0.5, y: 0.5, z: 0.5, w: 0.5}
   m_LocalPosition: {x: -0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 1
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: -90, y: 0, z: 90}
 --- !u!1 &919132147709241703
 GameObject:
   m_ObjectHideFlags: 0
@@ -556,6 +556,7 @@ GameObject:
   - component: {fileID: 1711813855244863666}
   - component: {fileID: 919132147709241704}
   - component: {fileID: 919132147709241705}
+  - component: {fileID: 919132147709241706}
   m_Layer: 0
   m_Name: Erde
   m_TagString: Untagged
@@ -593,7 +594,21 @@ MonoBehaviour:
   mSizeX: 129
   mSizeY: 129
   mHeight: 30
-  Detailierungsgrad: 0.8
+  Detailierungsgrad: 0.85
+--- !u!114 &919132147709241706
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919132147709241703}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 302b67f704c99bd47b907501f7bb53e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  referenceObject: {fileID: 919132147709241703}
+  durationSeconds: 10
 --- !u!23 &1711813855244863666
 MeshRenderer:
   m_ObjectHideFlags: 0
