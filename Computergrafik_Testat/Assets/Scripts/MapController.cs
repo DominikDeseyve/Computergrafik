@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class MapController : MonoBehaviour
 {
-    public float height = 255;
+    public float length = 255;
     public float width = 255;
-    public float height = 10;
+    public float height = 10f;
 
     public float moistureScale = 10f;
 
