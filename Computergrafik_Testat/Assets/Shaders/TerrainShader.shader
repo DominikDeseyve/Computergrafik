@@ -13,7 +13,7 @@ Shader "Testat/TerrainShader"
 		_ColorMap ("Color Map", 2D) = "normal" {}
 		_WaterMap1 ("Water Map 1", 2D) = "normal" {}
 		_WaterMap2 ("Water Map 2", 2D) = "normal" {}
-		_LandMap ("Land Map", 2D) = "normal" {}
+		_NormalMap ("Land Map", 2D) = "normal" {}
 
 		[Header(Reflection)]
 		[Space(15)]
@@ -112,7 +112,7 @@ Shader "Testat/TerrainShader"
 
 			sampler2D _WaterMap1, _WaterMap2;
 
-			sampler2D _LandMap;
+			sampler2D _NormalMap;
 
 			float _LiquidScale;
 			float _WaterSpeed;
@@ -154,7 +154,7 @@ Shader "Testat/TerrainShader"
 				}
 
 				switch (_Modus){
-					case 0:	vertexPos.xyz += normalize(vertexPos.xyz)*(height*_Scale+_BasisHeight);
+					case 0:	vertexPos.xyz += normalize(vertexPos.xyz) * (height * _Scale + _BasisHeight);
 					break;
 					case 1: vertexPos.xyz += v.normal*(height*_Scale);
 					break;
@@ -199,7 +199,7 @@ Shader "Testat/TerrainShader"
 				
 				if (i.land) {
 					//normal = i.worldNormal;
-					half3 tnormal = normalize(UnpackNormal(tex2D(_LandMap, i.uv)));
+					half3 tnormal = normalize(UnpackNormal(tex2D(_NormalMap, i.uv)));
                 	normal.x = dot(i.tspace0, tnormal);
                 	normal.y = dot(i.tspace1, tnormal);
                 	normal.z = dot(i.tspace2, tnormal);

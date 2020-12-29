@@ -18,15 +18,18 @@ public class MapController : MonoBehaviour
     {
         // PerlinNoise 
         PerlinNoise perlinNoise = (PerlinNoise)ScriptableObject.CreateInstance<PerlinNoise>();
-        GetComponent<Renderer>().material.SetTexture("_MoistureMap", perlinNoise.GenerateTexture(width, length, moistureScale));
+        Texture2D moistureMap = perlinNoise.GenerateTexture(width, length, moistureScale);
+        GetComponent<Renderer>().material.SetTexture("_MoistureMap", moistureMap);
 
         // DiamondSquareTerrain
         DiamondSquareTerrain diamondSquare = (DiamondSquareTerrain)ScriptableObject.CreateInstance<DiamondSquareTerrain>();
-        GetComponent<Renderer>().material.SetTexture("_HeightMap", diamondSquare.CreateTerrain(width, length, height));
+        Texture2D heightMap = diamondSquare.CreateTerrain(width, length, height);
+        GetComponent<Renderer>().material.SetTexture("_HeightMap", heightMap);
 
         // NormalMap
-        //NormalMap normalMap = (NormalMap) ScriptableObject.CreateInstance("NormalMap");
-        //GetComponent<Renderer>().material.SetTexture("_NormalMap", normalMap.CreateTerrain());
+        NormalMapGenerator normalMapGenerator = (NormalMapGenerator) ScriptableObject.CreateInstance<NormalMapGenerator>();
+        Texture2D normalMap = normalMapGenerator.CreateNormalMap(heightMap);
+        GetComponent<Renderer>().material.SetTexture("_NormalMap", normalMap);
     }
 
     // Update is called once per frame

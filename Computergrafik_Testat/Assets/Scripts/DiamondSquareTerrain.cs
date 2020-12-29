@@ -18,12 +18,9 @@ public class DiamondSquareTerrain : ScriptableObject
     Vector3[] mVerts;
     int mVertCount;
 
-    // Start is called before the first frame update
-
 
     public Texture2D CreateTerrain(int width, int length, float height)
     {
-
         size = (width >= length) ? (width - 1) : (length - 1);
         n = Mathf.Ceil(Mathf.Log(size, 2));
         mDivisions = (int)Mathf.Pow(2, n);
