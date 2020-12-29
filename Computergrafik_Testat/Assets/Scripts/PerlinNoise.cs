@@ -4,14 +4,6 @@ using UnityEngine;
 
 public class PerlinNoise : ScriptableObject
 {
-    /*public int height = 256;
-    public int width = 256;
-    private float moistureScale = 10f;
-
-    public Texture2D texture;*/
-
-
-
     public Texture2D GenerateTexture(int pX, int pY, float scale)
     {
         Texture2D texture = new Texture2D(pX, pY);
@@ -25,7 +17,6 @@ public class PerlinNoise : ScriptableObject
             }
         }
 
-        //GetComponent<Renderer>().material.SetTexture("_MoistureMap", texture);
         texture.Apply();
         return texture;
     }

@@ -41,7 +41,6 @@ public class FirstPersonControls : MonoBehaviour
         // Lock the cursor in the middle of the screen to achieve a fps handling
         if (Cursor.lockState != CursorLockMode.Locked)
             Cursor.lockState = CursorLockMode.Locked;
-
     }
 
     // Update is called once per frame
@@ -53,7 +52,6 @@ public class FirstPersonControls : MonoBehaviour
 
     void MouseController()
     {
-
         // Clamp is used tp apply limits to either side of the rotation's value
         // Save the mouse movements of the single axis into variables
         xRot += Mathf.Clamp(rotationSpeed * Input.GetAxis("Mouse X"), minX, maxX);
@@ -67,10 +65,6 @@ public class FirstPersonControls : MonoBehaviour
 
         // Apply the tranformation with the euler object. 
         transform.rotation = physicalParent.transform.rotation = targetRot;
-
-
-        //Quaternion.Lerp(transform.rotation, targetRot, Time.deltaTime);  <-- alternative rotation. not so direct but smoother.
-
     }
 
     // Function handeling different Keyevents.
@@ -120,32 +114,5 @@ public class FirstPersonControls : MonoBehaviour
             physicalParentBody.useGravity = true;
             useGravity = true;
         }
-
     }
-
-
-    /*
-    void KeyboardController()
-    {
-        return 0;
-    }
-    */
-
-    /*
-yaw += speedH * Input.GetAxis("Mouse X");
-pitch -= speedV * Input.GetAxis("Mouse Y");
-
-transform.eulerAngles = new Vector3(pitch, yaw, 0.0f);
-print("Current");
-print(_currentPos);
-Vector3 rotation = new Vector3();
-rotation.y = Mathf.Clamp(Input.GetAxis("Mouse X"), minX, maxX);
-rotation.x = Mathf.Clamp(Input.GetAxis("Mouse Y"), minY, maxY);
-print(rotation);
-Quaternion targetPos = Quaternion.Euler(rotation);
-print("Target");
-print(targetPos);
-transform.rotation = Quaternion.LookRotation(rotation);
-_currentPos = targetPos;
-*/
 }

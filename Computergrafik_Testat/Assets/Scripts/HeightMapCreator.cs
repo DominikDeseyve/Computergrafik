@@ -51,7 +51,6 @@ public class HeightMapCreator : MonoBehaviour {
                 int index = (y * _subMeshSize) + x;
 
                 vertices[index] = new Vector3(x+(xSubMeshCount*_subMeshSize)- xOffset, -y-(ySubMeshCount * _subMeshSize)+ yOffset, 0);
-                //Debug.Log("vertex index: " + index + ":   x=" + (x + (xSubMeshCount * _subMeshSize)) + "    y=" + (-y - (ySubMeshCount * _subMeshSize)));
                 uvs[index] = new Vector2(((float)(xSubMeshCount * _subMeshSize+x) / (float)_totalSize), ((float)(ySubMeshCount * _subMeshSize+y) / (float)_totalSize));
 
                 // Skip the last row/col
@@ -87,7 +86,6 @@ public class HeightMapCreator : MonoBehaviour {
             {
                 createSubMesh(xSub / _subMeshSize, ySub / _subMeshSize);
             }
-        }
-        
+        }        
     }
 }

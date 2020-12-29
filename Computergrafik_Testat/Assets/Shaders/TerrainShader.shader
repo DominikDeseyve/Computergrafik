@@ -42,8 +42,6 @@ Shader "Testat/TerrainShader"
 		//Höhe des Wasserspiegels
 		_LiquidScale ("Liquid Scale", Range(0, 1)) = 0.5	
 		_WaterSpeed ("WaterSpeed", Range(0,2)) = 0.8
-		
-
 	}
 
 	// A Shader can contain one or more SubShaders, which are primarily used to implement shaders for different GPU capabilities
@@ -78,7 +76,7 @@ Shader "Testat/TerrainShader"
 			// struct to pass Data from Vertex Sahder to Fragment Shader
 			struct v2f
 			{
-				// SV_POSITION: Shader semantic for position in Clip Space: https://docs.unity3d.com/Manual/SL-ShaderSemantics.html?_ga=2.64760810.432960686.1524081652-394573263.1524081652
+				// SV_POSITION: Shader semantic for position in Clip Space
 				float4 vertex : SV_POSITION;
 				float4 col : COLOR;
 
@@ -123,9 +121,6 @@ Shader "Testat/TerrainShader"
 			float _Shininess;
 			float4 _Color;
 
-            // Declare our new parameter here so it's visible to the CG shader
-            float4 _ScrollSpeeds;
-
 			// VERTEX SHADER
 			// https://docs.unity3d.com/Manual/SL-VertexProgramInputs.html
 			// http://wiki.unity3d.com/index.php?title=Shader_Code
@@ -140,8 +135,7 @@ Shader "Testat/TerrainShader"
 				float height = tex2Dlod(_HeightMap, float4(v.texcoord.xy, 0, 0)).x;
 				float moisture = tex2Dlod(_MoistureMap, float4(v.texcoord.xy, 0, 0)).x;
 
-				//float moistureLength = sqrt(float(moisture.x)*float(moisture.x)+float(moisture.y)*float(moisture.y)+float(moisture.z)*float(moisture.z));
-
+				// Farbgebung der Vertices und im Fall von Wasser Anhebung der Vertices
 				if (height <= _LiquidScale) 
 				{
 					height = _LiquidScale;
@@ -150,15 +144,19 @@ Shader "Testat/TerrainShader"
 				} else 
 				{
 					o.land = 1;
-					o.col = tex2Dlod(_ColorMap, float4(moisture, height, 0.0, 0.0));   //x(moisture), y(height), 0, 0					
+					o.col = tex2Dlod(_ColorMap, float4(moisture, (height-_LiquidScale)*((1-0.1) / (1-_LiquidScale))+0.1, 0.0, 0.0));				
 				}
 
+				// Modus für Unterscheidung zwischen Kugel und Ebene
 				switch (_Modus){
-					case 0:	vertexPos.xyz += normalize(vertexPos.xyz) * (height * _Scale + _BasisHeight);
+					// Kugel
+					case 0:	vertexPos.xyz += normalize(vertexPos.xyz) * (height * _Scale/1000 + _BasisHeight);
 					break;
+					// Ebene
 					case 1: vertexPos.xyz += v.normal*(height*_Scale);
 					break;
 				}	
+
 				// Convert Vertex Data from Object to Clip Space
 				o.vertex = UnityObjectToClipPos(vertexPos);
 				o.worldNormal = UnityObjectToWorldNormal(v.normal);
@@ -179,31 +177,27 @@ Shader "Testat/TerrainShader"
 				o.tspace1 = half3(wTangent.y, wBitangent.y, wNormal.y);
 				o.tspace2 = half3(wTangent.z, wBitangent.z, wNormal.z); 			
 
-				// output normal vector
-				//o.worldNormal = wNormal;
-
 				// output texture coordinates
 				o.uv = v.texcoord;
 				return o;
 			}
 
 			// FRAGMENT / PIXEL SHADER
-			// SV_Target: Shader semantic render target (SV_Target = SV_Target0): https://docs.unity3d.com/Manual/SL-ShaderSemantics.html?_ga=2.64760810.432960686.1524081652-394573263.1524081652
+			// SV_Target: Shader semantic render target (SV_Target = SV_Target0)
 			fixed4 frag (v2f i) : SV_Target
 			{				
 				fixed4 color = i.col;
-
 				fixed4 waterColor = tex2Dlod(_ColorMap, float4(0.0, 0.0, 0.0, 0.0)); 
-				
-                half3 normal;
+	            half3 normal;
 				
 				if (i.land) {
-					//normal = i.worldNormal;
+					// Textur für Landflächen mit NormalMap generiert aus HeightMap
 					half3 tnormal = normalize(UnpackNormal(tex2D(_NormalMap, i.uv)));
                 	normal.x = dot(i.tspace0, tnormal);
                 	normal.y = dot(i.tspace1, tnormal);
                 	normal.z = dot(i.tspace2, tnormal);
 				} else {
+					// Textur für Wasserflächen und Wellenbewegung
 					half3 tnormal = normalize(UnpackNormal(tex2D(_WaterMap1, i.uv - _WaterSpeed*_Time.xx)) + UnpackNormal(tex2D(_WaterMap2, i.uv + _WaterSpeed*0.5*_Time.xx)));
                 	normal.x = dot(i.tspace0, tnormal);
                 	normal.y = dot(i.tspace1, tnormal);
@@ -231,12 +225,7 @@ Shader "Testat/TerrainShader"
 				float3 worldSpaceReflection = reflect(normalize(-_WorldSpaceLightPos0.xyz), normal);
 				half re = pow(max(dot(worldSpaceReflection, i.worldViewDir), 0), _Shininess);
 
-				float4 spec = re * _LightColor0;
-
-				// Greife den pixel der Textur an der Stelle (u;v) ab und setze ihn als Farbe.                
-				//color = tex2D(_ColorTex, i.uv);
-
-				//bool isColor = (color == waterColor);				
+				float4 spec = re * _LightColor0;			
 
 				if (i.land) {	
 					color *= _Ka*amb + _Kd* diff;
@@ -247,7 +236,6 @@ Shader "Testat/TerrainShader"
 				}	
 
 				return saturate(color);
-				//return color;
 			}
 			ENDCG
 		}

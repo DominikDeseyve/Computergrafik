@@ -591,8 +591,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c02d1e0044e8d534882b3f923d6133b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  length: 255
-  width: 255
+  length: 256
+  width: 256
   height: 10
   moistureScale: 10
   detailLevel: 0.8

@@ -23,11 +23,11 @@ public class MapController : MonoBehaviour
 
         // DiamondSquareTerrain
         DiamondSquareTerrain diamondSquare = (DiamondSquareTerrain)ScriptableObject.CreateInstance<DiamondSquareTerrain>();
-        Texture2D heightMap = diamondSquare.CreateTerrain(width, length, height);
+        Texture2D heightMap = diamondSquare.CreateTerrain(width, length, height, detailLevel);
         GetComponent<Renderer>().material.SetTexture("_HeightMap", heightMap);
 
         // NormalMap
-        NormalMapGenerator normalMapGenerator = (NormalMapGenerator) ScriptableObject.CreateInstance<NormalMapGenerator>();
+        NormalMapGenerator normalMapGenerator = (NormalMapGenerator)ScriptableObject.CreateInstance<NormalMapGenerator>();
         Texture2D normalMap = normalMapGenerator.CreateNormalMap(heightMap);
         GetComponent<Renderer>().material.SetTexture("_NormalMap", normalMap);
     }
